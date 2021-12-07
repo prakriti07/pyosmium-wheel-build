@@ -6,6 +6,7 @@ echo "Running Linux steps"
 
 CMAKE_BIN_URL_64=https://cmake.org/files/v3.6/cmake-3.6.3-Linux-x86_64.sh
 CMAKE_BIN_URL_32=https://cmake.org/files/v3.6/cmake-3.6.3-Linux-i386.sh
+CMAKE_BIN_URL_aarch64=https://cmake.org/files/v3.21/cmake-3.21.0-linux-aarch64.sh
 
 function build_boost {
     mkdir -p boost
@@ -27,6 +28,8 @@ function build_boost {
 function build_cmake {
     if [ "x${AUDITWHEEL_ARCH}" == "xi686" ] ; then
         curl -o /tmp/cmake.sh "${CMAKE_BIN_URL_32}"
+    elif [ "x${AUDITWHEEL_ARCH}" == "xaarch64" ] ; then
+        curl -o /tmp/cmake.sh "${CMAKE_BIN_URL_aarch64}"
     else
         curl -o /tmp/cmake.sh "${CMAKE_BIN_URL_64}"
     fi
@@ -52,7 +55,14 @@ ln -sf $(pwd)/libosmium pyosmium/contrib/libosmium
 ln -sf $(pwd)/protozero pyosmium/contrib/protozero
 
 
-yum install -y sparsehash-devel expat-devel boost-devel zlib-devel
+if [ "$(uname -m)" == "aarch64" ]
+then
+    yum install -y expat-devel boost-devel zlib-devel
+    wget https://download-ib01.fedoraproject.org/pub/epel/7/aarch64/Packages/g/geos-3.4.2-2.el7.aarch64.rpm
+    rpm -i geos-3.4.2-2.el7.aarch64.rpm
+else
+    yum install -y sparsehash-devel expat-devel boost-devel zlib-devel
+fi
 
 
 # install bzip2
